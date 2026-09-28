@@ -9,7 +9,7 @@ Tested on:
 | Model | Capacity | Notes |
 |---|---|---|
 | MAW10V1QWT | 10,000 BTU | Full step-by-step test ([results](docs/test-results.md)) |
-| MAW08V1QWT | 8,000 BTU | Same firmware, same behaviour in daily use |
+| MAW08V1QWT | 8,000 BTU | Full step-by-step test, same results ([results](docs/test-results.md)) |
 
 Both are cooling-only (cool / dry / fan only), with vertical swing.
 
