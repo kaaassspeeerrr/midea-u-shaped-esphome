@@ -7,7 +7,10 @@ leaves alone.
 ## What ECO is
 
 ECO is the AC's **energy-saving mode**. When it's on, the **ECO light** on the
-AC's panel is lit. Midea doesn't document exactly what ECO changes on these
+AC's panel is lit. On the remote the same button is called **Energy Saver**.
+
+<img src="images/control-panel.jpg" width="620" alt="The AC's control panel with the ECO button third from the left">
+<img src="images/remote.jpg" width="150" alt="The Midea remote, with the Energy Saver button at the top right"> Midea doesn't document exactly what ECO changes on these
 units; you can turn it on and off with the ECO button on the AC, or (with this
 repo) from Home Assistant.
 

@@ -55,6 +55,12 @@ the dongle's software once, over Wi-Fi.
 - The AC and the SLWF-01Pro dongle, plugged into the **USB port inside the AC,
   behind the filter door** (where Midea's own Wi-Fi stick would go). Turn the
   AC off before you open the filter door.
+
+  <img src="docs/images/filter-door-open.jpg" width="620" alt="Midea U-shaped AC with the front filter door folded down; the dongle sits in a slot on the right-hand side">
+  <img src="docs/images/dongle-in-usb-port.jpg" width="190" alt="Close-up of the SLWF-01Pro dongle plugged into the AC's USB port">
+
+  *Filter door open: the dongle is in the slot on the right. Close-up: the
+  SLWF-01Pro (v2.1, with its own USB-C port) plugged into the AC's USB port.*
 - The dongle on your Wi-Fi and showing up in Home Assistant. Pre-flashed
   dongles are set up following SMLIGHT's instructions for the SLWF-01Pro. The
   dongle only supports **2.4 GHz** Wi-Fi.
@@ -121,6 +127,8 @@ the dongle's software once, over Wi-Fi.
 2. Set the AC to **cool**. After a moment the **ECO light on the AC turns on**
    by itself and the preset shows `eco`. That's normal (see
    [ECO explained](docs/eco-explained.md)).
+
+   <img src="docs/images/control-panel.jpg" width="620" alt="The AC's control panel: CONNECT, TIMER, ECO, MODE, down, up, FAN, SLEEP, SWING and ON/OFF buttons, with mode lights Auto Cool Dry Fan and fan lights Auto Low Med High">
 3. Change the **fan speed** to low, then high. You should hear it change, and
    the ECO light stays on. With stock firmware, nothing would happen.
 
