@@ -26,7 +26,9 @@ static bool checkConstraints(const Mode &mode, const Preset &preset) {
     case Preset::PRESET_NONE:
       return true;
     case Preset::PRESET_ECO:
-      return mode == Mode::MODE_COOL;
+      // PATCH (midea-u-shaped-esphome, 2026-09-28): Midea's manual lists Energy Saver
+      // (ECO) for COOL, DRY and AUTO on U-shaped units; upstream allowed COOL only.
+      return mode == Mode::MODE_COOL || mode == Mode::MODE_DRY || mode == Mode::MODE_AUTO;
     case Preset::PRESET_TURBO:
       return mode == Mode::MODE_COOL || mode == Mode::MODE_HEAT;
     case Preset::PRESET_SLEEP:
