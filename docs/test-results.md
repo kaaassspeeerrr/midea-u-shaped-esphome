@@ -21,13 +21,14 @@ be checked against the AC's own status reply (see [protocol.md](protocol.md)).
 | Cool | ✅ | ✅ | The unit turns **ECO on by itself** when it enters cool, even though the command says ECO off |
 | Dry | ✅ | ✅ | Fan is forced to auto by the unit (normal for Midea). ECO depends on the state before — see below |
 | Fan only | ✅ | ✅ | ECO clears |
+| Auto (`HEAT_COOL`) | ✅ | ✅ | Fan forced to auto (the AC decides); ECO on by itself; setpoint accepted. Shown as Heat/Cool — see README |
 | Setpoint | ✅ | ✅ | Display updates, compressor starts (after the usual ~3 min protection delay) |
 | Fan speed (ECO off) | ✅ | ✅ | low / medium / high |
 | Fan speed (ECO on) | ❌ silently ignored | ✅ | See below |
 | Swing (vertical) on/off | ✅ | ✅ | |
 | Swing while ECO on | ⚠️ also resets fan to auto | ✅ fan kept | Same cause |
 | ECO on/off | ❌ not exposed | ✅ | Needs `supported_presets` in the YAML; fan speed is kept when toggling |
-| Boost preset | ❌ not exposed | ✅ | Accepted and reported back by the AC |
+| Boost preset | ❌ not exposed | ✅ | Accepted and reported (turbo flag); turns ECO off; no display icon; reported fan stays "high"; slightly louder than high in a blind A/B listen (not measured) |
 | Sleep preset | ❌ not exposed | ❌ | These units have no sleep mode: the AC ignores it and sets fan to auto. Leave `SLEEP` out |
 
 ## AC panel/remote → Home Assistant

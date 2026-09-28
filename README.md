@@ -28,7 +28,7 @@ Yes, if you have:
 
 | In Home Assistant, you… | Stock dongle firmware | With this repo |
 |---|---|---|
-| Turn the AC on/off, pick cool / dry / fan only | ✅ | ✅ |
+| Turn the AC on/off, pick cool / dry / fan only / auto | ✅ | ✅ |
 | Change the temperature | ✅ | ✅ |
 | Turn swing on/off | ✅ | ✅ — and it no longer resets your fan speed |
 | Change fan speed in **fan only** | ✅ | ✅ |
@@ -95,6 +95,7 @@ the dongle's software once, over Wi-Fi.
        visual:
          temperature_step: 1
        supported_modes:
+         - HEAT_COOL   # the AC's AUTO mode (see "Auto mode" below)
          - COOL
          - DRY
          - FAN_ONLY
@@ -115,19 +116,38 @@ the dongle's software once, over Wi-Fi.
 ## Check that it worked
 
 1. In Home Assistant, open the AC. Below the fan and swing settings there
-   should now be a **Preset** setting (`none`, `eco`, `boost`).
+   should now be a **Preset** setting (`none`, `eco`, `boost`), and the modes
+   should include **Heat/Cool** (the AC's auto mode).
 2. Set the AC to **cool**. After a moment the **ECO light on the AC turns on**
    by itself and the preset shows `eco`. That's normal (see
    [ECO explained](docs/eco-explained.md)).
 3. Change the **fan speed** to low, then high. You should hear it change, and
    the ECO light stays on. With stock firmware, nothing would happen.
 
+## Auto mode shows as "Heat/Cool"
+
+These ACs have an **auto** mode (the AC picks the fan speed itself). In the
+config it's listed as `HEAT_COOL`, so in Home Assistant it's called
+**Heat/Cool** — even though the AC only cools.
+
+Why not call it "Auto"? Home Assistant's ESPHome integration **hides the
+temperature setting whenever a device is in "Auto"**, but these ACs do use the
+temperature in auto mode. As "Heat/Cool" you keep the temperature control.
+We've asked Home Assistant to change this:
+[feature request #4997](https://github.com/orgs/home-assistant/discussions/4997).
+
+Tip: on a dashboard you can still label it "Auto" — e.g. a button card named
+"Auto" whose tap action is `climate.set_hvac_mode` with `hvac_mode: heat_cool`.
+
+In auto mode the fan is always on auto (the AC decides), and ECO switches on
+by itself, like in cool.
+
 ## Troubleshooting
 
 | Problem | What to check |
 |---|---|
 | Fan speed still doesn't change in cool | Is there a **Preset** setting on the AC in Home Assistant? If not, the update didn't install — check the install log in ESPHome Device Builder. |
-| Fan speed in **dry** is always auto | Normal — the AC itself forces auto fan in dry. |
+| Fan speed in **dry** or **auto** is always auto | Normal — the AC decides the fan speed in those modes. |
 | ECO keeps turning itself back on | Normal — the AC switches ECO on every time it enters cool. Turn it off with Preset → `none`. |
 | Build fails after an ESPHome update | See [Compatibility](#compatibility). |
 | Dongle shows "unavailable" | Check it's still in the USB port and on Wi-Fi. Giving it a fixed IP address in your router helps. |
@@ -148,7 +168,7 @@ its internals the build can fail. If that happens, open an issue here.
 | Preset | Result |
 |---|---|
 | ECO | ✅ on/off from Home Assistant; fan speed works with it on |
-| Boost | ✅ accepted and reported back by the AC (its effect on the unit wasn't measured) |
+| Boost | ✅ accepted and reported back by the AC. Turns ECO off, shows no icon, sounds slightly louder than high in a side-by-side listen (not measured) |
 | Sleep | ❌ these units have no sleep mode — the AC ignores it and switches the fan to auto. Don't add `SLEEP` to `supported_presets`. |
 
 ## More detail

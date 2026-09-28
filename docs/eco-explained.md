@@ -19,7 +19,7 @@ the other modes:
 
 ```mermaid
 flowchart TD
-    C["You switch to COOL"] --> C1["ECO turns ON by itself"]
+    C["You switch to COOL or AUTO"] --> C1["ECO turns ON by itself"]
     D["You switch to DRY"] --> D1{"Was ECO on<br/>just before?"}
     D1 -- "yes" --> D2["ECO ends up OFF"]
     D1 -- "no" --> D3["ECO ends up ON"]
@@ -76,7 +76,8 @@ sequenceDiagram
 ```
 
 1. **Fan speed works while ECO is on.** The "ignore fan speed" rule now only
-   applies to Midea's *auto* mode, which these cooling-only units don't have.
+   applies to the AC's *auto* mode, where the AC chooses the fan speed itself
+   anyway.
 2. **ECO shows up in Home Assistant** as a *Preset* setting: `eco` = ECO on,
    `none` = ECO off. (This part only needs `supported_presets: [ECO]` in the
    config; it works with stock ESPHome too.)
@@ -106,7 +107,8 @@ always auto anyway, so ECO makes no practical difference there.
 | 4 | Read panel "high" as high | It showed as "auto", which was simply wrong | — |
 | 5 | Leave dry-mode ECO as the AC does it | Consistent on both models; no effect on fan speed | Force ECO always off in dry, or always on |
 | 6 | Don't offer Sleep | These units have no sleep mode; the AC ignores it | — |
-| 7 | Offer Boost | The AC accepts it and reports it back | — |
+| 7 | Offer Boost | The AC accepts it and reports it back; it sounds slightly louder than high | — |
+| 8 | Offer the AC's auto mode as `HEAT_COOL` ("Heat/Cool") | Home Assistant hides the temperature in "Auto"; these ACs use it | Show it as "Auto" and lose the temperature control — rejected; [asked HA to fix it](https://github.com/orgs/home-assistant/discussions/4997) |
 
 ## Why dry mode depends on what came before
 

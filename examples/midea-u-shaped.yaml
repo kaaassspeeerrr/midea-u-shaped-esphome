@@ -45,10 +45,11 @@ uart:
 climate:
   - platform: midea
     name: "AC"
-    autoconf: false          # explicit lists below; these units are cooling-only
+    autoconf: false          # explicit lists below (these units only cool)
     visual:
       temperature_step: 1
     supported_modes:
+      - HEAT_COOL            # the AC's AUTO mode; shows as Heat/Cool in HA (see README)
       - COOL
       - DRY
       - FAN_ONLY
