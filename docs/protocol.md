@@ -18,6 +18,16 @@ byte as 0, these are the ones that mattered on Midea U-shaped units:
 | 7 | Swing | `30` off, `3C` vertical |
 | 9 | ECO flag (`0x10`) | `10` on, `00` off |
 
+**ECO is encoded differently in commands and replies.** In a status reply
+(`C0`) ECO is byte 9 bit `0x10`. In a command (`40`) the library sets ECO with
+byte 9 bit `0x80` — but it builds each command from a copy of the last status,
+so a `0x10` left over from the reply goes out too. On these units a command
+with `0x10` (and no `0x80`) turns ECO **off**; `0x80` turns it on; with
+neither, a mode change into cool or dry gets the unit's default, ECO on.
+
+The units also send unsolicited status broadcasts (`A0` frames), in which ECO
+shows up as `0x80`/`0x90` in byte 9.
+
 The status reply tells you what the AC actually accepted. That's how you can
 see the unit switching ECO on by itself: the command has byte 9 = `00`, the
 reply comes back with `10`.
