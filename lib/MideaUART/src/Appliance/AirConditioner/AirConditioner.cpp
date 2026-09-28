@@ -62,7 +62,7 @@ void AirConditioner::control(const Control &control) {
   if (mode != Mode::MODE_OFF) {
     // PATCH (midea-u-shaped-esphome, 2026-09-28): upstream also forced FAN_AUTO whenever a preset
     // (ECO/SLEEP/TURBO) was on. Our Midea U-shaped units accept fan speed with
-    // ECO on (verified from the panel), and turn ECO on by themselves in cool/dry.
+    // ECO on (verified from the panel), and turn ECO on by themselves in cool.
     if (mode == Mode::MODE_AUTO) {
       if (this->m_fanMode != FanMode::FAN_AUTO) {
         hasUpdate = true;
