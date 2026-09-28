@@ -1,4 +1,7 @@
-# Reading the dongle logs
+# Advanced: reading the dongle's messages
+
+> This page is for developers and the curious. You don't need it to use the
+> repo. The plain-language version is [eco-explained.md](eco-explained.md).
 
 With the logger at DEBUG, `esphome logs <config>.yaml` shows every UART frame:
 
@@ -17,6 +20,7 @@ byte as 0, these are the ones that mattered on Midea U-shaped units:
 | 3 | Fan speed | `28` (40) low, `3C` (60) medium, `50` (80) high as sent by ESPHome, `64` (100) high from the panel, `66` (102) auto |
 | 7 | Swing | `30` off, `3C` vertical |
 | 9 | ECO — status replies: bit `0x10`; commands: bit `0x80` (see below) | reply `10` on, `00` off |
+| 10 | Sleep (bit `0x01`) | sent as `05`, AC replies `04`: no sleep mode on these units |
 
 **ECO is encoded differently in commands and replies.** In a status reply
 (`C0`) ECO is byte 9 bit `0x10`. In a command (`40`) the library sets ECO with

@@ -1,5 +1,7 @@
 # Test results
 
+Plain-language version of the ECO story: [eco-explained.md](eco-explained.md).
+
 Tested 2026-09-28 on both models, each with an SMLIGHT SLWF-01Pro running
 ESPHome 2026.9.0 (both bought March 2025):
 
@@ -24,7 +26,9 @@ be checked against the AC's own status reply (see [protocol.md](protocol.md)).
 | Fan speed (ECO on) | ❌ silently ignored | ✅ | See below |
 | Swing (vertical) on/off | ✅ | ✅ | |
 | Swing while ECO on | ⚠️ also resets fan to auto | ✅ fan kept | Same cause |
-| ECO on/off | ❌ not exposed | ✅ | Needs `supported_presets` in the YAML |
+| ECO on/off | ❌ not exposed | ✅ | Needs `supported_presets` in the YAML; fan speed is kept when toggling |
+| Boost preset | ❌ not exposed | ✅ | Accepted and reported back by the AC |
+| Sleep preset | ❌ not exposed | ❌ | These units have no sleep mode: the AC ignores it and sets fan to auto. Leave `SLEEP` out |
 
 ## AC panel/remote → Home Assistant
 
@@ -68,3 +72,11 @@ swing resets the fan to auto. The AC itself is fine with it: pressing the fan
 button on the panel with ECO on changes the speed and ECO stays on (confirmed
 from the unit's status replies: ECO flag stays set while fan goes 40 → 60 →
 100 → auto).
+
+## Regression run (2026-09-28, 12:48 PM, both units at once)
+
+Automated from Home Assistant, reading back what each AC reported, on the
+firmware built from this repo's `v1.0.0` tag. Both models, identical results:
+cool → ECO on by itself ✅ · fan medium / high with ECO on ✅ · swing off keeps
+fan speed ✅ · ECO off and back on from Home Assistant keeps fan speed ✅ ·
+boost ✅ · sleep ❌ (no sleep mode on these units).

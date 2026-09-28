@@ -13,7 +13,7 @@ esp8266:
 
 # Patched midea component (fan speed works while ECO is on). Pick one source:
 external_components:
-  - source: github://kaaassspeeerrr/midea-u-shaped-esphome@main
+  - source: github://kaaassspeeerrr/midea-u-shaped-esphome@v1.0.0
     components: [midea]
   # Or, with a local copy of this repo next to this file:
   # - source:
@@ -56,5 +56,4 @@ climate:
       - VERTICAL
     supported_presets:       # exposes ECO so Home Assistant can see and clear it
       - ECO
-      - SLEEP
-      - BOOST
+      - BOOST                # no SLEEP: these units don't have a sleep mode
