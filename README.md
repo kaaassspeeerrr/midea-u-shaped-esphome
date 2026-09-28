@@ -37,7 +37,12 @@ Details: [lib/MideaUART/PATCHES.md](lib/MideaUART/PATCHES.md).
 
 - **Dongle:** SMLIGHT **SLWF-01Pro** (ESP-12E / ESP8266), which talks to the
   AC over UART on GPIO12 (TX) / GPIO14 (RX) at 9600 baud.
-  <!-- TODO(Kasper): where/how it plugs into the unit, and whether it came flashed with ESPHome -->
+- **Where it goes:** a female USB port inside the unit, behind the filter
+  door (where Midea's own Wi-Fi stick would go). It's powered from that port.
+- **Firmware:** the dongles ship pre-flashed with stock ESPHome. That works
+  for mode, setpoint and swing, but has the ECO / fan-speed problem below and
+  doesn't expose ECO. Reflash with this repo's config once (over Wi-Fi from
+  the ESPHome dashboard or `esphome run`); later updates are OTA too.
 - **Recall:** Midea U-shaped units were part of a 2025 CPSC recall for mold.
   Check yours with Midea before anything else.
 
@@ -54,7 +59,7 @@ Details: [lib/MideaUART/PATCHES.md](lib/MideaUART/PATCHES.md).
        components: [midea]
    ```
 
-3. Flash as usual (`esphome run midea-u-shaped.yaml`, or from the ESPHome
+3. Flash (`esphome run midea-u-shaped.yaml`, or from the ESPHome
    dashboard). The dongle updates over Wi-Fi after the first flash.
 4. In Home Assistant the climate entity gets a **preset** control:
    `none` / `eco` / `sleep` / `boost`. `none` = ECO off.
