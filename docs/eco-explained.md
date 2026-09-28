@@ -6,8 +6,19 @@ leaves alone.
 
 ## What ECO is
 
-ECO is the AC's **energy-saving mode**. When it's on, the **ECO light** on the
-AC's panel is lit. On the remote the same button is called **Energy Saver**.
+ECO is the AC's **energy-saving mode** ("Energy Saver" in Midea's
+[owner's manual](https://www.midea.com/content/dam/midea-aem/ca/1200-x-1200-resized/u-shaped-ac/User-Manual-MAW10V1QWT.pdf)).
+When it's on, the **ECO light** on the AC's panel is lit. On the remote the
+same button is called **Energy Saver**.
+
+What it does, according to the manual: when the room reaches your set
+temperature the **compressor stops**, the fan keeps running for 3 minutes, and
+after that the fan only runs **2 minutes out of every 10** until cooling is
+needed again. Without ECO the fan runs all the time. ECO only exists in cool,
+dry and auto.
+
+So with ECO on, the fan speed you choose applies while the AC is cooling; in
+between cooling cycles the fan pauses.
 
 <img src="images/control-panel.jpg" width="620" alt="The AC's control panel with the ECO button third from the left">
 <img src="images/remote.jpg" width="150" alt="The Midea remote, with the Energy Saver button at the top right"> Midea doesn't document exactly what ECO changes on these
@@ -17,7 +28,9 @@ repo) from Home Assistant.
 ## The AC turns ECO on by itself
 
 The most important thing to know: **every time the AC switches into cool, it
-turns ECO on by itself**, even if you had turned it off before. What happens in
+turns ECO on by itself**, even if you had turned it off before. The manual
+says the same about switching the AC on: it "will automatically switch on the
+Energy Saver Function" for cool, dry and auto. What happens in
 the other modes:
 
 ```mermaid
@@ -109,8 +122,9 @@ always auto anyway, so ECO makes no practical difference there.
 | 3 | Keep ECO turning itself on in cool | It's the AC's own behaviour and harmless now | Force ECO off in cool |
 | 4 | Read panel "high" as high | It showed as "auto", which was simply wrong | — |
 | 5 | Leave dry-mode ECO as the AC does it | Consistent on both models; no effect on fan speed | Force ECO always off in dry, or always on |
-| 6 | Don't offer Sleep | These units have no sleep mode; the AC ignores it | — |
-| 7 | Offer Boost | The AC accepts it and reports it back; it sounds slightly louder than high | — |
+| 6 | Offer Sleep, keep the fan on auto while it's on | The AC only accepts sleep with the fan already on auto; the dongle switches the fan to auto first, then sends sleep (v1.1.0). An early test wrongly concluded there was no sleep mode | — |
+| 7 | Offer Boost, marked undocumented | The AC accepts and reports it, but it isn't in Midea's manual and there's no button for it | Remove it |
+| 9 | Show "sleep" when sleep and ECO are both on | Both can be on at once (e.g. SLEEP pressed on the panel); ECO turns on by itself, sleep only on purpose | Show "eco" (upstream) |
 | 8 | Offer the AC's auto mode as `HEAT_COOL` ("Heat/Cool") | Home Assistant hides the temperature in "Auto"; these ACs use it | Show it as "Auto" and lose the temperature control — rejected; [asked HA to fix it](https://github.com/orgs/home-assistant/discussions/4997) |
 
 ## Why dry mode depends on what came before

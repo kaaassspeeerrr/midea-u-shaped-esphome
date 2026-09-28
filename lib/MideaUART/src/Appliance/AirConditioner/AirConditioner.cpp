@@ -60,10 +60,13 @@ void AirConditioner::control(const Control &control) {
     preset = control.preset.value();
   }
   if (mode != Mode::MODE_OFF) {
-    // PATCH (midea-u-shaped-esphome, 2026-09-28): upstream also forced FAN_AUTO whenever a preset
-    // (ECO/SLEEP/TURBO) was on. Our Midea U-shaped units accept fan speed with
-    // ECO on (verified from the panel), and turn ECO on by themselves in cool.
-    if (mode == Mode::MODE_AUTO) {
+    // PATCH (midea-u-shaped-esphome, 2026-09-28): upstream forced FAN_AUTO whenever any preset
+    // (ECO/SLEEP/TURBO) was on. Our Midea U-shaped units accept fan speed with ECO on
+    // (verified from the panel) and with TURBO on (tested over UART), and turn ECO on by
+    // themselves in cool. SLEEP is
+    // different: the unit only accepts it with the fan on auto (with low/high it forces
+    // auto and drops sleep), so AUTO mode and SLEEP keep the upstream behaviour.
+    if (mode == Mode::MODE_AUTO || preset == Preset::PRESET_SLEEP) {
       if (this->m_fanMode != FanMode::FAN_AUTO) {
         hasUpdate = true;
         status.setFanMode(FanMode::FAN_AUTO);
@@ -87,7 +90,13 @@ void AirConditioner::control(const Control &control) {
     status.setPreset(preset);
     status.setBeeper(this->m_beeper);
     status.appendCRC();
-    if (isModeChanged && preset != Preset::PRESET_NONE && preset != Preset::PRESET_SLEEP) {
+    // PATCH (midea-u-shaped-esphome, 2026-09-28): these units only accept SLEEP when the fan
+    // is *already* on auto; fan auto + sleep in one command is refused. So when SLEEP is
+    // requested with the fan not on auto, send fan auto first, then the command with SLEEP.
+    const bool sleepAfterFanAuto =
+        preset == Preset::PRESET_SLEEP && this->m_fanMode != FanMode::FAN_AUTO;
+    if ((isModeChanged && preset != Preset::PRESET_NONE && preset != Preset::PRESET_SLEEP) ||
+        sleepAfterFanAuto) {
       // Last command with preset
       this->m_setStatus(status);
       status.setPreset(Preset::PRESET_NONE);

@@ -34,6 +34,8 @@ Yes, if you have:
 | Change fan speed in **fan only** | ✅ | ✅ |
 | Change fan speed in **cool** | ❌ ignored | ✅ |
 | See whether ECO is on, turn it on/off | ❌ invisible | ✅ ("Preset": `eco` / `none`) |
+| Turn on **sleep** | ⚠️ only works if the fan is already on auto | ✅ from any fan speed |
+| Sleep turned on from the AC's panel while ECO is on | shows as "eco" | shows as "sleep" |
 | Press "high" on the AC's own panel | shows as "auto" | shows as "high" |
 
 ## How it fits together
@@ -61,9 +63,13 @@ the dongle's software once, over Wi-Fi.
 
   *Filter door open: the dongle is in the slot on the right. Close-up: the
   SLWF-01Pro (v2.1, with its own USB-C port) plugged into the AC's USB port.*
-- The dongle on your Wi-Fi and showing up in Home Assistant. Pre-flashed
-  dongles are set up following SMLIGHT's instructions for the SLWF-01Pro. The
-  dongle only supports **2.4 GHz** Wi-Fi.
+- The dongle on your Wi-Fi and showing up in Home Assistant. A pre-flashed
+  dongle that isn't on your Wi-Fi yet opens its own Wi-Fi network called
+  **`AC-wifi-…`** (password **`slwf01pro`**). Join it with your phone, pick your
+  home Wi-Fi on the page that opens, and Home Assistant will discover the
+  dongle. (That's from SMLIGHT's
+  [official firmware config](https://github.com/smlight-tech/slwf-01pro-esphome).)
+  The dongle only supports **2.4 GHz** Wi-Fi.
 - The **ESPHome Device Builder** add-on in Home Assistant
   (Settings → Add-ons → Add-on Store → *ESPHome Device Builder*). It lets you
   edit the dongle's configuration and update it over Wi-Fi.
@@ -76,12 +82,20 @@ the dongle's software once, over Wi-Fi.
 2. **Keep what's already there** at the top — especially the `api:` and `ota:`
    sections. They contain the keys your dongle already uses; if you replace
    them, Home Assistant and ESPHome can lose the connection to it.
+
+   > ⚠️ **Remove SMLIGHT's auto-update.** The pre-flashed firmware checks
+   > SMLIGHT for updates and offers them in Home Assistant ("Firmware Update").
+   > Installing one would **replace this repo's version with stock firmware**
+   > and the fix would be gone. Delete these parts if your file has them:
+   > the whole `update:` section, the whole `http_request:` section, and the
+   > `- platform: http_request` line (plus its `id:` line) under `ota:`.
+   > Keep `- platform: esphome` under `ota:`.
 3. **Add this block** (anywhere at the top level, e.g. after `esp8266:`). It
    tells ESPHome to use the modified Midea part from this repo:
 
    ```yaml
    external_components:
-     - source: github://kaaassspeeerrr/midea-u-shaped-esphome@v1.0.0
+     - source: github://kaaassspeeerrr/midea-u-shaped-esphome@v1.1.0
        components: [midea]
    ```
 
@@ -109,6 +123,7 @@ the dongle's software once, over Wi-Fi.
          - VERTICAL
        supported_presets:
          - ECO
+         - SLEEP
          - BOOST
    ```
 
@@ -122,7 +137,7 @@ the dongle's software once, over Wi-Fi.
 ## Check that it worked
 
 1. In Home Assistant, open the AC. Below the fan and swing settings there
-   should now be a **Preset** setting (`none`, `eco`, `boost`), and the modes
+   should now be a **Preset** setting (`none`, `eco`, `sleep`, `boost`), and the modes
    should include **Heat/Cool** (the AC's auto mode).
 2. Set the AC to **cool**. After a moment the **ECO light on the AC turns on**
    by itself and the preset shows `eco`. That's normal (see
@@ -159,6 +174,11 @@ by itself, like in cool.
 | ECO keeps turning itself back on | Normal — the AC switches ECO on every time it enters cool. Turn it off with Preset → `none`. |
 | Build fails after an ESPHome update | See [Compatibility](#compatibility). |
 | Dongle shows "unavailable" | Check it's still in the USB port and on Wi-Fi. Giving it a fixed IP address in your router helps. |
+| Fan is stuck on auto in **sleep** | Normal — the AC only runs sleep with the fan on auto. Pick another preset (or `none`) to change the fan again. |
+| Sleep turned off when I changed mode | Normal — changing mode ends sleep (the AC then picks its default, usually ECO on). |
+| Can't turn ECO **on** from Home Assistant in auto or dry | Known limitation: ESPHome only allows choosing ECO in cool. The AC still switches ECO on by itself in auto and dry. |
+| "Firmware Update" from SMLIGHT shows up in Home Assistant | Don't install it — it replaces this repo's version. Remove the `update:` part from the config (Setup, step 2). |
+| Cooling is weak or the unit is loud | Clean the air filter (behind the filter door). The **Check Filter** light comes on after 250 hours; hold **SWING** for 3 s to reset it. |
 
 ## Going back to stock
 
@@ -173,18 +193,27 @@ its internals the build can fail. If that happens, open an issue here.
 
 ## Presets
 
-| Preset | Result |
-|---|---|
-| ECO | ✅ on/off from Home Assistant; fan speed works with it on |
-| Boost | ✅ accepted and reported back by the AC. Turns ECO off, shows no icon, sounds slightly louder than high in a side-by-side listen (not measured) |
-| Sleep | ❌ these units have no sleep mode — the AC ignores it and switches the fan to auto. Don't add `SLEEP` to `supported_presets`. |
+| Preset | What it does (Midea's manual) | With this repo |
+|---|---|---|
+| `eco` | **Energy Saver**: when the room reaches your temperature the compressor stops, the fan runs 3 more minutes, then only 2 minutes every 10 minutes. Cool, dry and auto only. | ✅ on/off; fan speed works with it on |
+| `sleep` | Raises the set temperature by 2 °F after 30 minutes and another 2 °F after an hour, holds it for 7 hours, then returns. Cooling only. | ✅ from any fan speed. The fan is kept on auto while sleep is on (the AC requires it). Not available in dry or fan only. |
+| `boost` | **Not in Midea's manual**, and there's no button for it. | ⚠️ The AC accepts and reports it, turns ECO off, shows no icon; sounded slightly louder than high (not measured). Use at your own discretion. |
+
+## Official documentation
+
+- Midea owner's manual for MAW08V1QWT / MAW10V1QWT (EN/FR):
+  [midea.com PDF](https://www.midea.com/content/dam/midea-aem/ca/1200-x-1200-resized/u-shaped-ac/User-Manual-MAW10V1QWT.pdf)
+- Midea U installation guide:
+  [midea.com PDF](https://www.midea.com/content/dam/midea-aem/us/air-conditioners/window-air-conditioners/u-shape-all-models/Midea%20U%20AC%20Installation%20Guide.pdf)
+- SMLIGHT SLWF-01Pro official ESPHome configs:
+  [smlight-tech/slwf-01pro-esphome](https://github.com/smlight-tech/slwf-01pro-esphome)
 
 ## More detail
 
 - [ECO explained](docs/eco-explained.md): what ECO does, what went wrong, what we changed and what we deliberately didn't
 - [Test results](docs/test-results.md): every control, tested on both models
 - [Advanced: reading the dongle's messages](docs/protocol.md), for developers
-- [What was changed in the code](lib/MideaUART/PATCHES.md)
+- [What was changed in the code](lib/MideaUART/PATCHES.md) · [Changelog](CHANGELOG.md)
 
 ## Licence
 

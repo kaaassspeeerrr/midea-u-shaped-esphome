@@ -12,3 +12,12 @@ Base: https://github.com/dudanov/MideaUART @ `eeea6c3e9b4474f067054592b435be1c4e
 2. `src/Appliance/AirConditioner/StatusData.cpp`, `StatusData::getFanMode()`:
    U-shaped units report the panel/remote "high" speed as 100, which upstream
    doesn't recognise (shown as AUTO). 100 now reads as HIGH.
+3. `src/Appliance/AirConditioner/AirConditioner.cpp`, `AirConditioner::control()`
+   (v1.1.0): SLEEP keeps upstream's "fan to auto, ignore fan changes" rule —
+   these units only accept sleep when the fan is **already** on auto (fan auto +
+   sleep in one command is refused). When sleep is requested with the fan not
+   on auto, the dongle now sends two commands: fan auto first, then sleep
+   (reusing upstream's two-command path for mode changes).
+4. `src/Appliance/AirConditioner/StatusData.cpp`, `StatusData::getPreset()`
+   (v1.1.0): SLEEP is checked before ECO. These units can run both at once;
+   upstream reported only ECO, hiding sleep set from the panel or remote.

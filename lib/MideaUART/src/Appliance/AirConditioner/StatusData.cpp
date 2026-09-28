@@ -63,12 +63,15 @@ FanMode StatusData::getFanMode() const {
 }
 
 Preset StatusData::getPreset() const {
+  // PATCH (midea-u-shaped-esphome, 2026-09-28): check SLEEP first. These units can run
+  // ECO and SLEEP together (e.g. SLEEP pressed on the panel while ECO is on); ECO is
+  // switched on automatically, SLEEP only on purpose, so SLEEP is the one to report.
+  if (this->m_getSleep())
+    return Preset::PRESET_SLEEP;
   if (this->m_getEco())
     return Preset::PRESET_ECO;
   if (this->m_getTurbo())
     return Preset::PRESET_TURBO;
-  if (this->m_getSleep())
-    return Preset::PRESET_SLEEP;
   if (this->m_getFreezeProtection())
     return Preset::PRESET_FREEZE_PROTECTION;
   return Preset::PRESET_NONE;

@@ -29,7 +29,7 @@ be checked against the AC's own status reply (see [protocol.md](protocol.md)).
 | Swing while ECO on | ⚠️ also resets fan to auto | ✅ fan kept | Same cause |
 | ECO on/off | ❌ not exposed | ✅ | Needs `supported_presets` in the YAML; fan speed is kept when toggling |
 | Boost preset | ❌ not exposed | ✅ | Accepted and reported (turbo flag); turns ECO off; no display icon; reported fan stays "high"; slightly louder than high in a blind A/B listen (not measured) |
-| Sleep preset | ❌ not exposed | ❌ | These units have no sleep mode: the AC ignores it and sets fan to auto. Leave `SLEEP` out |
+| Sleep preset | ⚠️ only if the fan is already on auto | ✅ | The AC refuses sleep unless the fan is already on auto. v1.1.0 sets fan auto first, then sleep. See the sleep section below |
 
 ## AC panel/remote → Home Assistant
 
@@ -81,3 +81,25 @@ firmware built from this repo's `v1.0.0` tag. Both models, identical results:
 cool → ECO on by itself ✅ · fan medium / high with ECO on ✅ · swing off keeps
 fan speed ✅ · ECO off and back on from Home Assistant keeps fan speed ✅ ·
 boost ✅ · sleep ❌ (no sleep mode on these units).
+
+## Sleep — test from scratch (2026-09-28, 2:19–2:28 PM, firmware v1.1.0, MAW10V1QWT)
+
+Every verdict from the AC's own status reply (not from Home Assistant).
+**56 of 57 checks passed**; the one failure was a setup step unrelated to sleep
+(Home Assistant can't turn ECO on in auto mode — ESPHome only allows ECO in cool).
+Full log: kept locally.
+
+| Situation | Result |
+|---|---|
+| Sleep from cool, fan auto / low / medium / high, ECO on or off (8 cases) | ✅ AC reports sleep, fan auto, ECO off; HA shows `sleep`; `none` clears it |
+| Sleep from auto mode, ECO on or off | ✅ |
+| Sleep in dry, fan only, or with the AC off | ✅ ignored, nothing changes |
+| Fan change during sleep | ✅ held on auto, sleep kept |
+| Temperature change during sleep | ✅ applied, sleep kept |
+| sleep → eco → sleep → boost → sleep (with fan high) | ✅ each switch correct |
+| Mode change during sleep (cool → auto) | ends sleep; AC comes up with ECO on |
+| SLEEP pressed on the panel while ECO is on | ✅ AC runs both; HA shows `sleep` (was `eco` before v1.1.0) |
+
+Before v1.1.0, sleep only worked when the fan was already on auto: with low or
+high the AC switched the fan to auto and refused sleep — even when the fan auto
+and sleep were sent in the same command.
