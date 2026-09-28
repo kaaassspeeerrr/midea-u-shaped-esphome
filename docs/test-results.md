@@ -43,7 +43,8 @@ and off for the MAW08V1QWT. Both switch ECO on by themselves when entering
 
 ## Why fan speed "doesn't work" on stock ESPHome
 
-1. These units switch ECO on by themselves whenever they go into cool or dry.
+1. These units switch ECO on by themselves whenever they go into cool (the 10k
+   model also in dry).
 2. Upstream MideaUART's `AirConditioner::control()` forces the fan to AUTO and
    drops fan-speed commands while any preset (ECO, SLEEP, TURBO) is active.
 3. Without `supported_presets`, Home Assistant can't even see that ECO is on.

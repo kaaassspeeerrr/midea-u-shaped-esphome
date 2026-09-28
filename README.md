@@ -18,7 +18,7 @@ Both are cooling-only (cool / dry / fan only), with vertical swing.
 With stock ESPHome, changing the fan speed from Home Assistant in cool mode
 silently does nothing, and changing swing resets the fan to auto. The cause:
 
-- The unit **switches ECO on by itself** every time it enters cool or dry.
+- The unit **switches ECO on by itself** every time it enters cool.
 - ESPHome's Midea library ignores fan-speed commands while any preset (ECO,
   sleep, turbo) is on.
 - Without `supported_presets` in the config, Home Assistant can't see ECO at all.
@@ -70,7 +70,7 @@ lets you change fan speed while ECO stays on.
 
 ## Home Assistant notes
 
-- Expect ECO to come back on whenever the unit switches to cool or dry. With
+- Expect ECO to come back on whenever the unit switches to cool. With
   this patch that no longer blocks fan speed, so you can simply leave it.
 - Fan speed in dry mode is always auto — that's the unit, not ESPHome.
 - Panel/remote changes show up in Home Assistant within about a second.
