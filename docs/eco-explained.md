@@ -21,9 +21,10 @@ So with ECO on, the fan speed you choose applies while the AC is cooling; in
 between cooling cycles the fan pauses.
 
 <img src="images/control-panel.jpg" width="620" alt="The AC's control panel with the ECO button third from the left">
-<img src="images/remote.jpg" width="150" alt="The Midea remote, with the Energy Saver button at the top right"> Midea doesn't document exactly what ECO changes on these
-units; you can turn it on and off with the ECO button on the AC, or (with this
-repo) from Home Assistant.
+<img src="images/remote.jpg" width="150" alt="The Midea remote, with the Energy Saver button at the top right">
+
+You can turn ECO on and off with the ECO button on the AC, the remote, or
+(with this repo) from Home Assistant — in cool, dry and auto.
 
 ## The AC turns ECO on by itself
 
@@ -35,16 +36,13 @@ the other modes:
 
 ```mermaid
 flowchart TD
-    C["You switch to COOL or AUTO"] --> C1["ECO turns ON by itself"]
-    D["You switch to DRY"] --> D1{"Was ECO on<br/>just before?"}
-    D1 -- "yes" --> D2["ECO ends up OFF"]
-    D1 -- "no" --> D3["ECO ends up ON"]
+    C["You switch to COOL, AUTO or DRY"] --> C1["ECO turns ON by itself"]
     F["You switch to FAN ONLY<br/>or turn the AC OFF"] --> F1["ECO is OFF"]
     P["You set Preset to eco / none<br/>in Home Assistant"] --> P1["ECO follows your choice<br/>until the next mode change"]
 ```
 
-Both tested models (8,000 and 10,000 BTU) behave exactly like this. Dry mode's
-"it depends" is explained [further down](#why-dry-mode-depends-on-what-came-before).
+Both tested models (8,000 and 10,000 BTU) behave exactly like this. (Before
+v1.2.0, dry was an exception — see [the end of this page](#before-v120-why-dry-mode-depended-on-what-came-before).)
 
 ## The problem: fan speed was ignored
 
@@ -109,9 +107,8 @@ energy saving. Since fan speed now works either way, there's no need: if you
 don't want ECO, set Preset to `none` after switching to cool (or write an
 automation that does).
 
-**Dry mode's ECO behaviour is left as the AC does it** (the "it depends" in the
-diagram). It's consistent — both models do the same — and fan speed in dry is
-always auto anyway, so ECO makes no practical difference there.
+**ECO also turns itself on in dry and auto** — the AC's own default. You can
+switch it off (or back on) there from Home Assistant since v1.2.0.
 
 ## Decisions log
 
@@ -121,33 +118,34 @@ always auto anyway, so ECO makes no practical difference there.
 | 2 | Let fan speed work while ECO is on (code change) | That's what the AC's own panel allows | Automatically turn ECO off whenever you pick a fan speed — rejected: it throws away the energy saving and fights the AC |
 | 3 | Keep ECO turning itself on in cool | It's the AC's own behaviour and harmless now | Force ECO off in cool |
 | 4 | Read panel "high" as high | It showed as "auto", which was simply wrong | — |
-| 5 | Leave dry-mode ECO as the AC does it | Consistent on both models; no effect on fan speed | Force ECO always off in dry, or always on |
+| 5 | Leave dry-mode ECO as the AC does it (v1.0.0–v1.1.0) | Consistent on both models; no effect on fan speed | Force ECO always off in dry, or always on |
 | 6 | Offer Sleep, keep the fan on auto while it's on | The AC only accepts sleep with the fan already on auto; the dongle switches the fan to auto first, then sends sleep (v1.1.0). An early test wrongly concluded there was no sleep mode | — |
 | 7 | Offer Boost, marked undocumented | The AC accepts and reports it, but it isn't in Midea's manual and there's no button for it | Remove it |
-| 9 | Show "sleep" when sleep and ECO are both on | Both can be on at once (e.g. SLEEP pressed on the panel); ECO turns on by itself, sleep only on purpose | Show "eco" (upstream) |
 | 8 | Offer the AC's auto mode as `HEAT_COOL` ("Heat/Cool") | Home Assistant hides the temperature in "Auto"; these ACs use it | Show it as "Auto" and lose the temperature control — rejected; [asked HA to fix it](https://github.com/orgs/home-assistant/discussions/4997) |
+| 9 | Show "sleep" when sleep and ECO are both on | Both can be on at once (e.g. SLEEP pressed on the panel); ECO turns on by itself, sleep only on purpose | Show "eco" (upstream) |
+| 10 | Let Home Assistant choose ECO in dry and auto too (v1.2.0) | Midea's manual lists Energy Saver for cool, dry and auto; the library only allowed cool. Side effect: ECO carries over from cool into dry, so dry always ends up with ECO on | Keep ECO choosable in cool only |
 
-## Why dry mode depends on what came before
+## Before v1.2.0: why dry mode depended on what came before
 
-This one is a quirk of how the dongle talks to the AC. Each time the dongle
-sends a command, it starts from a **copy of the AC's last status report** and
-changes what needs changing. Status reports and commands use **different
-"checkboxes" for ECO**:
+Up to v1.1.0, switching into dry left ECO **off** if ECO had been on in cool,
+and **on** if it had been off. The reason is a quirk of how the dongle talks to
+the AC. Each command starts from a **copy of the AC's last status report**, and
+reports and commands use **different "checkboxes" for ECO**:
 
 - In a status report, the AC ticks box **A** when ECO is on.
 - In a command, the dongle ticks box **B** to ask for ECO on.
 
-Because commands start as a copy of the last report, box A is still ticked
-when ECO *was* on. These ACs read a leftover box A as **"ECO off, please"**.
-And if neither box is ticked, the AC picks its own default for the new mode:
-**ECO on**.
+A leftover box A in a command means **"ECO off, please"** to these ACs; with
+neither box ticked, the AC uses its default for the new mode, **ECO on**. The
+library treated ECO as cool-only, so from cool+ECO it switched to dry with the
+leftover box A — ECO off.
 
 ```mermaid
 flowchart LR
-    S1["Cool, ECO on<br/>(report ticks box A)"] -- "switch to dry:<br/>command still has box A" --> R1["Dry, ECO OFF"]
+    S1["Cool, ECO on<br/>(report ticks box A)"] -- "switch to dry, before v1.2.0:<br/>command still has box A" --> R1["Dry, ECO OFF"]
     S2["Cool, ECO off<br/>(box A empty)"] -- "switch to dry:<br/>no ECO box ticked" --> R2["Dry, ECO ON<br/>(AC's default)"]
 ```
 
-In cool you don't notice this, because the AC's default for cool is ECO on
-anyway — and when ECO was on in dry, ESPHome re-sends it after switching to
-cool. For the byte-level details, see [protocol.md](protocol.md).
+Since v1.2.0 ECO is allowed in dry, so the dongle carries it over (ticks box B)
+and dry always ends up with ECO on. For the byte-level details, see
+[protocol.md](protocol.md).

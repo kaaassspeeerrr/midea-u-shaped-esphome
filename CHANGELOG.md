@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.0 — 2026-09-28
+- **ECO can be chosen from Home Assistant in dry and auto**, not just cool.
+  Dry now always ends up with ECO on (it used to depend on the state before).
+- Docs/example: `autoconf: true` (makes the display toggle work over USB),
+  `min_temperature: 16 °C` (60 °F on the unit), display toggle and beeper
+  extras, the AC's capability list, Follow Me is infrared-only.
+
 ## v1.1.0 — 2026-09-28
 - **Sleep works from Home Assistant from any fan speed.** These units only
   accept sleep when the fan is already on auto; the dongle now switches the fan

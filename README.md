@@ -33,7 +33,7 @@ Yes, if you have:
 | Turn swing on/off | ✅ | ✅ — and it no longer resets your fan speed |
 | Change fan speed in **fan only** | ✅ | ✅ |
 | Change fan speed in **cool** | ❌ ignored | ✅ |
-| See whether ECO is on, turn it on/off | ❌ invisible | ✅ ("Preset": `eco` / `none`) |
+| See whether ECO is on, turn it on/off | ❌ invisible | ✅ ("Preset": `eco` / `none`) in cool, dry and auto |
 | Turn on **sleep** | ⚠️ only works if the fan is already on auto | ✅ from any fan speed |
 | Sleep turned on from the AC's panel while ECO is on | shows as "eco" | shows as "sleep" |
 | Press "high" on the AC's own panel | shows as "auto" | shows as "high" |
@@ -95,7 +95,7 @@ the dongle's software once, over Wi-Fi.
 
    ```yaml
    external_components:
-     - source: github://kaaassspeeerrr/midea-u-shaped-esphome@v1.1.0
+     - source: github://kaaassspeeerrr/midea-u-shaped-esphome@v1.2.0
        components: [midea]
    ```
 
@@ -111,8 +111,9 @@ the dongle's software once, over Wi-Fi.
    climate:
      - platform: midea
        name: "AC"
-       autoconf: false
+       autoconf: true            # lets the AC report what it supports (needed for the display button)
        visual:
+         min_temperature: 16 °C  # the AC accepts 16 °C = 60 °F on its display
          temperature_step: 1
        supported_modes:
          - HEAT_COOL   # the AC's AUTO mode (see "Auto mode" below)
@@ -125,6 +126,26 @@ the dongle's software once, over Wi-Fi.
          - ECO
          - SLEEP
          - BOOST
+   ```
+
+   Optional extras (both work over the USB connection):
+
+   ```yaml
+   button:
+     - platform: template
+       name: "Display toggle"      # AC's display/panel lights on/off
+       on_press:
+         - midea_ac.display_toggle:
+
+   switch:
+     - platform: template
+       name: "Beeper"              # AC beeps when a command from Home Assistant arrives
+       optimistic: true
+       restore_mode: RESTORE_DEFAULT_OFF
+       turn_on_action:
+         - midea_ac.beeper_on:
+       turn_off_action:
+         - midea_ac.beeper_off:
    ```
 
    A complete example file is in [examples/midea-u-shaped.yaml](examples/midea-u-shaped.yaml).
@@ -176,7 +197,7 @@ by itself, like in cool.
 | Dongle shows "unavailable" | Check it's still in the USB port and on Wi-Fi. Giving it a fixed IP address in your router helps. |
 | Fan is stuck on auto in **sleep** | Normal — the AC only runs sleep with the fan on auto. Pick another preset (or `none`) to change the fan again. |
 | Sleep turned off when I changed mode | Normal — changing mode ends sleep (the AC then picks its default, usually ECO on). |
-| Can't turn ECO **on** from Home Assistant in auto or dry | Known limitation: ESPHome only allows choosing ECO in cool. The AC still switches ECO on by itself in auto and dry. |
+| Display toggle does nothing; the log says "Action needs remote_transmitter component" | Set `autoconf: true`. Without it the dongle doesn't know the AC supports display control over USB and tries infrared instead. |
 | "Firmware Update" from SMLIGHT shows up in Home Assistant | Don't install it — it replaces this repo's version. Remove the `update:` part from the config (Setup, step 2). |
 | Cooling is weak or the unit is loud | Clean the air filter (behind the filter door). The **Check Filter** light comes on after 250 hours; hold **SWING** for 3 s to reset it. |
 
@@ -197,7 +218,18 @@ its internals the build can fail. If that happens, open an issue here.
 |---|---|---|
 | `eco` | **Energy Saver**: when the room reaches your temperature the compressor stops, the fan runs 3 more minutes, then only 2 minutes every 10 minutes. Cool, dry and auto only. | ✅ on/off; fan speed works with it on |
 | `sleep` | Raises the set temperature by 2 °F after 30 minutes and another 2 °F after an hour, holds it for 7 hours, then returns. Cooling only. | ✅ from any fan speed. The fan is kept on auto while sleep is on (the AC requires it). Not available in dry or fan only. |
-| `boost` | **Not in Midea's manual**, and there's no button for it. | ⚠️ The AC accepts and reports it, turns ECO off, shows no icon; sounded slightly louder than high (not measured). Use at your own discretion. |
+| `boost` | **Not in Midea's manual** and there's no button for it, but the AC reports it as a capability ("turbo cool"). | ✅ Accepted and reported; turns ECO off, shows no icon; sounded slightly louder than high (not measured). |
+
+## What the AC reports it can do
+
+With `autoconf: true` the AC reports its capabilities at startup (in the
+dongle's log). Both tested models: **auto, cool, dry** (16–30 °C), **ECO**,
+**turbo**, **display control**, **up/down swing**. No heat mode.
+
+**Not supported over USB: Follow Me** (the AC regulating to a remote
+temperature — "Comfort Sense" in the manual). ESPHome sends it by infrared
+only, which on the SLWF-01Pro v2.1 needs a wire soldered to the AC's IR
+receiver.
 
 ## Official documentation
 

@@ -21,3 +21,7 @@ Base: https://github.com/dudanov/MideaUART @ `eeea6c3e9b4474f067054592b435be1c4e
 4. `src/Appliance/AirConditioner/StatusData.cpp`, `StatusData::getPreset()`
    (v1.1.0): SLEEP is checked before ECO. These units can run both at once;
    upstream reported only ECO, hiding sleep set from the panel or remote.
+5. `src/Appliance/AirConditioner/AirConditioner.cpp`, `checkConstraints()`
+   (v1.2.0): ECO is allowed in DRY and AUTO as well as COOL (Midea's manual
+   lists Energy Saver for all three). Side effect: ECO carries over from cool
+   into dry.

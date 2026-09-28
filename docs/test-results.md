@@ -19,7 +19,7 @@ be checked against the AC's own status reply (see [protocol.md](protocol.md)).
 |---|---|---|---|
 | Off / on | ✅ | ✅ | |
 | Cool | ✅ | ✅ | The unit turns **ECO on by itself** when it enters cool, even though the command says ECO off |
-| Dry | ✅ | ✅ | Fan is forced to auto by the unit (normal for Midea). ECO depends on the state before — see below |
+| Dry | ✅ | ✅ | Fan is forced to auto by the unit (normal for Midea). ECO on by itself (v1.2.0; before, it depended on the state before — see below) |
 | Fan only | ✅ | ✅ | ECO clears |
 | Auto (`HEAT_COOL`) | ✅ | ✅ | Fan forced to auto (the AC decides); ECO on by itself; setpoint accepted. Shown as Heat/Cool — see README |
 | Setpoint | ✅ | ✅ | Display updates, compressor starts (after the usual ~3 min protection delay) |
@@ -27,7 +27,7 @@ be checked against the AC's own status reply (see [protocol.md](protocol.md)).
 | Fan speed (ECO on) | ❌ silently ignored | ✅ | See below |
 | Swing (vertical) on/off | ✅ | ✅ | |
 | Swing while ECO on | ⚠️ also resets fan to auto | ✅ fan kept | Same cause |
-| ECO on/off | ❌ not exposed | ✅ | Needs `supported_presets` in the YAML; fan speed is kept when toggling |
+| ECO on/off | ❌ not exposed | ✅ | Needs `supported_presets` in the YAML; fan speed is kept when toggling. Choosable in cool, dry and auto since v1.2.0 |
 | Boost preset | ❌ not exposed | ✅ | Accepted and reported (turbo flag); turns ECO off; no display icon; reported fan stays "high"; slightly louder than high in a blind A/B listen (not measured) |
 | Sleep preset | ⚠️ only if the fan is already on auto | ✅ | The AC refuses sleep unless the fan is already on auto. v1.1.0 sets fan auto first, then sleep. See the sleep section below |
 
@@ -40,7 +40,7 @@ be checked against the AC's own status reply (see [protocol.md](protocol.md)).
 | Swing, setpoint, mode | ✅ | ✅ |
 | ECO on/off | ❌ invisible | ✅ preset |
 
-## ECO when switching into dry
+## ECO when switching into dry (v1.0.0–v1.1.0)
 
 Tested on both models at the same time, identical results:
 
@@ -103,3 +103,17 @@ Full log: kept locally.
 Before v1.1.0, sleep only worked when the fan was already on auto: with low or
 high the AC switched the fan to auto and refused sleep — even when the fan auto
 and sleep were sent in the same command.
+
+## v1.2.0 checks (2026-09-28, 7:35 PM, MAW10V1QWT) — 15/15 passed
+
+| Situation | Result |
+|---|---|
+| Auto: preset `none` → `eco` | ✅ ECO off, then on (was blocked before) |
+| Dry: preset `none` → `eco` → `none` | ✅ |
+| Cool with ECO on → dry | ✅ ECO carries over (before: switched off) |
+| Regression: fan low with ECO in cool; sleep from fan low; `none` | ✅ |
+
+Also tested that day: `autoconf: true` → the AC reports AUTO/COOL/DRY 16–30 °C,
+SPECIAL ECO, TURBO COOL, LIGHT CONTROL, UPDOWN FAN; display toggle works over
+USB; beeper works; 16 °C setpoint accepted (unit shows 60 °F); Follow Me not
+available (infrared only).

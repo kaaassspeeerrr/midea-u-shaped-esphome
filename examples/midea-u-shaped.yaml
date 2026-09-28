@@ -13,7 +13,7 @@ esp8266:
 
 # Patched midea component (fan speed works while ECO is on). Pick one source:
 external_components:
-  - source: github://kaaassspeeerrr/midea-u-shaped-esphome@v1.1.0
+  - source: github://kaaassspeeerrr/midea-u-shaped-esphome@v1.2.0
     components: [midea]
   # Or, with a local copy of this repo next to this file:
   # - source:
@@ -45,8 +45,9 @@ uart:
 climate:
   - platform: midea
     name: "AC"
-    autoconf: false          # explicit lists below (these units only cool)
+    autoconf: true           # AC reports its capabilities (needed for the display toggle)
     visual:
+      min_temperature: 16 °C # accepted by the AC; shows as 60 °F on its display
       temperature_step: 1
     supported_modes:
       - HEAT_COOL            # the AC's AUTO mode; shows as Heat/Cool in HA (see README)
@@ -59,3 +60,21 @@ climate:
       - ECO
       - SLEEP                # fan is held on auto while sleep is on (the AC requires it)
       - BOOST                # not in Midea's manual; accepted by the AC
+
+button:
+  - platform: template
+    name: "Display toggle"   # AC's display/panel lights on/off
+    icon: mdi:theme-light-dark
+    on_press:
+      - midea_ac.display_toggle:
+
+switch:
+  - platform: template
+    name: "Beeper"           # AC beeps when a command from Home Assistant arrives
+    icon: mdi:volume-source
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - midea_ac.beeper_on:
+    turn_off_action:
+      - midea_ac.beeper_off:
