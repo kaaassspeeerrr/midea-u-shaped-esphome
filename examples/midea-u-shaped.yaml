@@ -1,0 +1,60 @@
+# ESPHome config for a Midea U-shaped window AC (MAW08V1QWT / MAW10V1QWT)
+# with an SMLIGHT SLWF-01Pro dongle. Copy secrets.yaml.example to secrets.yaml.
+substitutions:
+  name: midea-u-ac
+  friendly_name: Midea U AC
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp8266:
+  board: esp12e
+
+# Patched midea component (fan speed works while ECO is on). Pick one source:
+external_components:
+  - source: github://kaaassspeeerrr/midea-u-shaped-esphome@main
+    components: [midea]
+  # Or, with a local copy of this repo next to this file:
+  # - source:
+  #     type: local
+  #     path: ../components
+  #   components: [midea]
+
+logger:
+  baud_rate: 0   # the UART is used by the AC
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+# SLWF-01Pro: ESP-12E, AC UART on GPIO12 (TX) / GPIO14 (RX)
+uart:
+  tx_pin: 12
+  rx_pin: 14
+  baud_rate: 9600
+
+climate:
+  - platform: midea
+    name: "AC"
+    autoconf: false          # explicit lists below; these units are cooling-only
+    visual:
+      temperature_step: 1
+    supported_modes:
+      - COOL
+      - DRY
+      - FAN_ONLY
+    supported_swing_modes:
+      - VERTICAL
+    supported_presets:       # exposes ECO so Home Assistant can see and clear it
+      - ECO
+      - SLEEP
+      - BOOST
