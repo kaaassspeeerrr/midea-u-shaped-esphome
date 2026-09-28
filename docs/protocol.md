@@ -16,7 +16,7 @@ byte as 0, these are the ones that mattered on Midea U-shaped units:
 | 2 | Mode (bits 7–5) + setpoint (low nibble = °C − 16) | mode 2 cool, 3 dry, 5 fan only. `46` = cool 22 °C (72 °F), `44` = cool 20 °C (68 °F), `A4` = fan only |
 | 3 | Fan speed | `28` (40) low, `3C` (60) medium, `50` (80) high as sent by ESPHome, `64` (100) high from the panel, `66` (102) auto |
 | 7 | Swing | `30` off, `3C` vertical |
-| 9 | ECO flag (`0x10`) | `10` on, `00` off |
+| 9 | ECO — status replies: bit `0x10`; commands: bit `0x80` (see below) | reply `10` on, `00` off |
 
 **ECO is encoded differently in commands and replies.** In a status reply
 (`C0`) ECO is byte 9 bit `0x10`. In a command (`40`) the library sets ECO with
